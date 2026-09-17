@@ -15,7 +15,7 @@ jobs:
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22.18.0
           cache: 'npm' # 缓存node_modules，加速构建
 
       - name: 安装依赖
