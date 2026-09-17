@@ -1,4 +1,4 @@
-name: Vue CI Build & Deploy - MockPrint
+name: Vue CI Build & Deploy - GitHubPages
 on:
   push:
     branches: [ main ]
@@ -50,17 +50,11 @@ jobs:
         with:
           name: dist-files
           path: dist/
-      - name: 模拟部署，打印信息
-        run: |
-          echo "===== 模拟部署开始 ====="
-          echo "当前分支: $GITHUB_REF_NAME"
-          echo "commit SHA: $GITHUB_SHA"
-          echo "dist目录文件列表："
-          ls -la dist
-          echo "模拟：上传dist到服务器 /data/www/vue-app"
-          echo "模拟：执行 nginx -s reload"
-          echo "===== 模拟部署完成 ====="
-
+      - name: 部署到GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
 
   # 部署job：只在push到main才执行，PR阶段不执行部署
   # deploy-prod:
