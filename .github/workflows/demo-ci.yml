@@ -1,0 +1,111 @@
+name: Vue CI Build & Deploy
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm' # 缓存node_modules，加速构建
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: Vue打包
+        run: npm run build
+
+      # 上传dist作为产物（PR和push都会保存打包结果）
+      - name: 保存dist产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files
+          path: dist/
+
+  test-job1:
+    needs: build-job
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "单元测试1执行完成"
+
+  test-job2:
+    needs: build-job
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "单元测试2执行开始"
+      - run: sleep 20
+      - run: echo "单元测试2执行完成"
+
+  # 部署job：只在push到master才执行，PR阶段不执行部署
+  # deploy-prod:
+  #   needs: [test-job1, test-job2]
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: 下载打包好的dist
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: dist-files
+  #         path: dist/
+
+  #     - name: 通过SSH上传dist到服务器
+  #       uses: appleboy/scp-action@master
+  #       with:
+  #         host: ${{ secrets.SSH_HOST }}
+  #         username: ${{ secrets.SSH_USERNAME }}
+  #         key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #         source: "dist/*"
+  #         target: "/data/www/vue-app"
+  #         overwrite: true
+
+  # 模拟部署job：只打印信息，不操作服务器
+  deploy-prod:
+    needs: [test-job1, test-job2]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 下载打包产物dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-files
+          path: dist/
+
+      - name: 模拟部署，打印信息
+        run: |
+          echo "===== 模拟部署开始 ====="
+          echo "当前分支: $GITHUB_REF_NAME"
+          echo "commit SHA: $GITHUB_SHA"
+          echo "dist目录文件列表："
+          ls -la dist
+          echo "模拟：上传dist到服务器 /data/www/vue-app"
+          echo "模拟：执行 nginx -s reload"
+          echo "===== 模拟部署完成 ====="
+
+
+
+  # deploy-prod:
+  #   needs: [test-job1, test-job2]
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: 下载打包产物dist
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: dist-files
+  #         path: dist/
+  #     - name: 部署到GitHub Pages
+  #       uses: peaceiris/actions-gh-pages@v4
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         publish_dir: ./dist
+
+
