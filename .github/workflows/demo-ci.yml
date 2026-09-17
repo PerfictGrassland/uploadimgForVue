@@ -45,10 +45,10 @@ jobs:
       - run: sleep 20
       - run: echo "单元测试2执行完成"
 
-  # 部署job：只在push到master才执行，PR阶段不执行部署
+  # 部署job：只在push到main才执行，PR阶段不执行部署
   # deploy-prod:
   #   needs: [test-job1, test-job2]
-  #   if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
   #   runs-on: ubuntu-latest
   #   steps:
   #     - name: 下载打包好的dist
@@ -58,7 +58,7 @@ jobs:
   #         path: dist/
 
   #     - name: 通过SSH上传dist到服务器
-  #       uses: appleboy/scp-action@master
+  #       uses: appleboy/scp-action@main
   #       with:
   #         host: ${{ secrets.SSH_HOST }}
   #         username: ${{ secrets.SSH_USERNAME }}
@@ -70,7 +70,7 @@ jobs:
   # 模拟部署job：只打印信息，不操作服务器
   deploy-prod:
     needs: [test-job1, test-job2]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: 下载打包产物dist
@@ -94,7 +94,7 @@ jobs:
 
   # deploy-prod:
   #   needs: [test-job1, test-job2]
-  #   if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
   #   runs-on: ubuntu-latest
   #   steps:
   #     - name: 下载打包产物dist
